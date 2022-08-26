@@ -1,2 +1,5 @@
-streamlit ,pip install streamlit
+streamlit ,"pip install streamlit"
+
 streamlit run app.py( to run the streamlit)
+
+pip install plotly, #for charts and histogram display

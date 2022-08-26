@@ -2,10 +2,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import csv
-import itertools
-import functools
-import operator
+# import itertools
+# import functools
+# import operator
 import pydeck as pdk
+import plotly.express as px
 
 DATA_URL = (
     "C:\\Users\HP\Desktop\Data Science Web App\Motor_Vehicle_Collisions_-_Crashes.csv"
@@ -22,6 +23,7 @@ def load_data(nrows):
     data = pd.read_csv(DATA_URL, nrows=nrows, parse_dates=[
                        ['CRASH_DATE', 'CRASH_TIME']])
     data.dropna(subset=['LATITUDE', 'LONGITUDE'], inplace=True)
+    # def lowercase(x): return str(x).lower()
     def lowercase(x): return str(x).lower()
     data.rename(lowercase, axis='columns', inplace=True)
     data.rename(columns={'crash_date_crash_time': 'date/time'}, inplace=True)
@@ -54,7 +56,36 @@ st.write(pdk.Deck(
         "zoom": 11,
         "pitch": 50,
     },
+
+    # for 3d interactive map
+
+    layers=[
+        pdk.Layer(
+            "hexagonLayer",
+            data=data[['date/time', 'latitude', 'longitude']],
+            get_position=['longitude', 'latitude'],
+            radiue=100,
+            extruded=True,
+            pickable=True,
+            elevation_scale=4,
+            elevation_range=[0, 1000],
+        ),
+    ],
 ))
+
+#charts and histograms
+st.subheader("Breakdown by minute between %i:00 and %i:00" %
+             (hour, (hour + 1) % 24))
+filtered = data[
+    (data['date/time'].dt.hour >= hour) & (data['date/time'].dt.hour < (hour + 1))
+]
+hist = np.histogram(filtered['date/time'].dt.minute, bins=60, range=(0, 60))[0]
+chart_data = pd.DataFrame({'minute': range(60), 'crashes': hist})
+fig = px.bar(chart_data, x='minute', y='crashes',
+             hover_data=['minute', 'crashes'], height=400)
+st.write(fig)
+
+#select data using dropdown
 
 # if st.checkbox("Show Raw Data", False):
 #     st.subheader('Raw Data')
